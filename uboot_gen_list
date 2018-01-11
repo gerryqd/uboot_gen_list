@@ -1,0 +1,46 @@
+#!/usr/bin/env python2
+import sys
+import os.path
+
+def is_file(name):
+    return os.path.exists(name) and (not os.path.isdir(name))
+
+def process_dep_file(dep_file):
+    if not is_file(dep_file):
+        return
+
+    f = open(dep_file)
+    first_line =  True
+    for line in f:
+        if first_line:
+            first_line = False
+            continue
+        line = line.strip().rstrip('\\').strip()
+        if line == "":
+            continue
+        if line.endswith(':') or line.endswith(':=') or line.endswith(")"):
+            continue
+        pos = line.find('=')
+        if pos != -1:
+            line = line[pos + 1:].strip()
+        else:
+            pos = line.find(':')
+            if pos != -1:
+                line = line[pos + 1:].strip()
+        line = os.path.normpath(line)
+        line = os.path.relpath(line)
+        if is_file(line):
+            print line
+
+def main():
+    if len(sys.argv) < 2:
+        print 'ERRROR, file name needed!'
+        sys.exit(-1)
+    for dep_file in sys.argv[1:]:
+        if dep_file.find('auto.conf.cmd') != -1:
+            continue
+        process_dep_file(dep_file)
+
+if __name__ == '__main__':
+    main()
+
